@@ -1,22 +1,20 @@
 # i-eSchool Admin Panel
 
-A modern, responsive admin dashboard for online school management. This is a frontend-only prototype designed for technical interview exercises where candidates will implement backend functionality.
+A modern, responsive admin dashboard for online school management. This project now integrates a MongoDB backend via Next.js API Routes, transitioning from a frontend-only prototype to a functional application with data persistence.
 
 ![i-eSchool Admin Panel](https://img.shields.io/badge/Next.js-16.0.7-black) ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1.9-38bdf8)
 
 ## Overview
 
-i-eSchool Admin Panel is a clean, professional education management system built with Next.js, React, TypeScript, and Tailwind CSS. It provides a complete UI for managing classes, students, attendance, AI-powered summaries, and Microsoft Teams integration.
-
-**This is a frontend prototype.** All data is currently stored in component state using mock data. Candidates in technical interviews will implement the backend functionality.
+i-eSchool Admin Panel is a clean, professional education management system built with Next.js, React, TypeScript, and Tailwind CSS. It provides a complete UI for managing classes, students, attendance, AI-powered summaries, and Microsoft Teams integration. The backend functionality for `Classes` and `Students` management is implemented using MongoDB and Next.js API Routes, providing data persistence. This serves as a foundation, and candidates can expand upon it.
 
 ## Features
 
 ### Implemented Pages
 
 - **Dashboard** - Overview with statistics, recent activity, and quick actions
-- **Classes Management** - CRUD operations for classes with modals
-- **Students Management** - Manage students with class assignments
+- **Classes Management** - CRUD operations for classes with modals (with data persistence)
+- **Students Management** - Manage students with class assignments (with data persistence)
 - **Attendance System** - Mark attendance by class and date
 - **AI Summary** - Placeholder UI for AI-powered attendance insights
 - **Teams Integration** - UI for Microsoft Teams webhook integration
@@ -27,12 +25,13 @@ i-eSchool Admin Panel is a clean, professional education management system built
 - Clean sidebar navigation with active states
 - Modern UI components using shadcn/ui
 - TypeScript interfaces for all data models
-- Mock data stored in component state
-- Ready for backend integration
+- Data persistence with MongoDB and Next.js API routes
+- Ready for further backend integration
 
 ## Tech Stack
 
 - **Framework**: Next.js 16.0.7 (App Router)
+- **Backend**: Next.js API Routes, MongoDB, Mongoose
 - **Language**: TypeScript 5
 - **Styling**: Tailwind CSS 4.1.9
 - **UI Components**: shadcn/ui (Radix UI primitives)
@@ -138,18 +137,23 @@ interface AttendanceRecord {
 
 ## Interview Task Guidelines
 
-**Candidates should complete a minimum of 1 of the following 3 tasks:**
+**This project now includes partial implementations of Task 1 (Database Integration for Students and Classes) and Task 3 (REST APIs for Students and Classes). Candidates are encouraged to build upon this foundation.**
 
-### Task 1: Database Integration
+### Task 1: Database Integration (Partially Implemented)
 
-Replace mock data with a real database:
+The database integration for `Students` and `Classes` is now partially implemented using **MongoDB** and **Mongoose**.
 
-- **Options**: PostgreSQL, MongoDB, MySQL, Supabase, etc.
-- **What to implement**:
-  - Database schema for classes, students, and attendance
-  - Database connection setup
-  - Replace component state with database queries
-  - Implement proper error handling
+- **What has been implemented**:
+  - MongoDB database connection (`lib/db.ts`)
+  - Mongoose schemas/models for `Student`, `Class`, and `Attendance`
+  - RESTful API endpoints for `Students` (`/api/students`, `/api/students/:id`) and `Classes` (`/api/classes`, `/api/classes/:id`) to handle CRUD operations.
+  - Data fetching for `Students` and `Classes` pages from the database.
+  - Loading states on `Students` and `Classes` pages for better UX.
+
+- **Further expansion for candidates**:
+  - Implement database integration for the `Attendance` system.
+  - Implement real-time updates (e.g., using WebSockets).
+  - Add more robust error handling and validation.
 
 **Suggested API endpoints**:
 \`\`\`
@@ -188,16 +192,21 @@ export async function POST(request: Request) {
 }
 \`\`\`
 
-### Task 3: Build REST/GraphQL APIs
+### Task 3: Build REST/GraphQL APIs (Partially Implemented for Students and Classes)
 
-Create a complete API layer for the application:
+REST APIs for `Students` and `Classes` have been implemented using **Next.js API Routes**.
 
-- **What to implement**:
-  - RESTful or GraphQL API endpoints
-  - Request validation using Zod or similar
-  - Error handling and status codes
-  - API documentation (optional)
-  - Authentication/authorization (optional)
+- **What has been implemented**:
+  - RESTful API endpoints for `Students` and `Classes` for CRUD operations.
+  - Request validation for `Students` (using Zod in `lib/validations.ts`).
+  - Error handling and appropriate status codes for API responses.
+
+- **Further expansion for candidates**:
+  - Implement full API layer for `Attendance`.
+  - Explore GraphQL as an alternative or additional API layer.
+  - Add API documentation (e.g., Swagger/OpenAPI).
+  - Implement authentication/authorization for API endpoints.
+  - Add more comprehensive request validation for `Classes`.
 
 **Technologies you can use**:
 - Next.js API Routes
@@ -229,19 +238,19 @@ All design tokens are defined in `app/globals.css` using CSS variables.
 
 ## Notes for Developers
 
-1. **No Real Backend**: All data is currently stored in React state. Database calls and API integrations need to be implemented.
+1. **Partial Backend Implemented**: A backend using MongoDB and Next.js API Routes is now partially implemented for Students and Classes management. The Attendance system still requires backend integration.
 
-2. **Mock Data**: Mock data is in `lib/mock-data.ts` - use this as a reference for data structure.
+2. **Mock Data**: `lib/mock-data.ts` is still present but data for Students and Classes is fetched from the database. It can be used as a reference or for other parts of the application.
 
 3. **Type Safety**: All data models have TypeScript interfaces - use these when implementing backend.
 
-4. **Component State**: Currently using `useState` for data management - replace with API calls or state management library.
+4. **Data Management**: Data for Students and Classes is now managed through API calls to the MongoDB backend. `useState` is still used for local UI state.
 
 5. **Authentication**: No authentication is implemented - add if required for your interview.
 
 6. **Environment Variables**: Create a `.env.local` file for any API keys or database URLs:
 \`\`\`env
-DATABASE_URL=your_database_url
+DATABASE_URL=your_mongodb_connection_string
 TEAMS_WEBHOOK_URL=your_webhook_url
 \`\`\`
 
