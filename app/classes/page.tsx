@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Skeleton } from "@/components/ui/skeleton"
 import type { Class } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
 
@@ -26,13 +27,11 @@ export default function ClassesPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [newClass, setNewClass] = useState({ name: "", teacher: "", description: "" })
   const [editingClass, setEditingClass] = useState<Class | null>(null);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast()
 
-  useEffect(() => {
-    fetchClasses();
-  }, []);
-
   const fetchClasses = async () => {
+    setLoading(true);
     try {
       const response = await fetch("/api/classes");
       if (!response.ok) {
@@ -46,8 +45,14 @@ export default function ClassesPage() {
         description: error.message || "Failed to load classes",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchClasses();
+  }, []);
 
   const handleAddClass = async () => {
     if (!newClass.name || !newClass.teacher) {
@@ -254,24 +259,42 @@ export default function ClassesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {classes.map((classItem: Class) => (
-                <TableRow key={classItem._id}>
-                  <TableCell className="font-medium">{classItem.name}</TableCell>
-                  <TableCell>{classItem.teacher}</TableCell>
-                  <TableCell>{classItem.numberOfStudents}</TableCell>
-                  <TableCell className="max-w-xs truncate">{classItem.description}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => openEditDialog(classItem)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteClass(classItem._id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
+              {loading ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-12" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-8 w-20" /></TableCell>
+                  </TableRow>
+                ))
+              ) : classes.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center">
+                    No classes found.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                classes.map((classItem: Class) => (
+                  <TableRow key={classItem._id}>
+                    <TableCell className="font-medium">{classItem.name}</TableCell>
+                    <TableCell>{classItem.teacher}</TableCell>
+                    <TableCell>{classItem.numberOfStudents}</TableCell>
+                    <TableCell className="max-w-xs truncate">{classItem.description}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(classItem)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteClass(classItem._id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

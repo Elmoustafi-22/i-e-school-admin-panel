@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
+import { useRouter } from 'next/navigation';
 import { BookOpen, Users, ClipboardCheck, TrendingUp } from "lucide-react"
 import { StatCard } from "@/components/stat-card"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -55,6 +56,7 @@ export default function DashboardPage() {
   const [recentActivities, setRecentActivities] = useState<RecentActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -219,7 +221,10 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="rounded-lg border border-border p-3 hover:bg-accent/50 cursor-pointer transition-colors">
+              <div 
+                className="rounded-lg border border-border p-3 hover:bg-accent/50 cursor-pointer transition-colors"
+                onClick={() => router.push('/attendance')}
+              >
                 <p className="font-medium text-foreground">Mark Today's Attendance</p>
                 <p className="text-sm text-muted-foreground">Record student attendance for all classes</p>
               </div>

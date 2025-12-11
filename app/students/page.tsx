@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import type { Student, Class } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
 
@@ -28,46 +29,44 @@ export default function StudentsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [dialogMode, setDialogMode] = useState<'add' | 'edit'>('add')
   const [currentStudent, setCurrentStudent] = useState<Partial<StudentFormData & { _id?: string }>>({ name: "", className: "", email: "", status: "Active" })
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast()
 
-  const fetchStudents = useCallback(async () => {
+  const fetchPageData = useCallback(async () => {
+    setLoading(true);
     try {
-      const response = await fetch("/api/students");
-      if (!response.ok) {
+      const [studentsResponse, classesResponse] = await Promise.all([
+        fetch("/api/students"),
+        fetch("/api/classes"),
+      ]);
+
+      if (!studentsResponse.ok) {
         throw new Error("Failed to fetch students");
       }
-      const data: Student[] = await response.json();
-      setStudents(data);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load students",
-        variant: "destructive",
-      });
-    }
-  }, [toast]);
-
-  const fetchClasses = useCallback(async () => {
-    try {
-      const response = await fetch("/api/classes");
-      if (!response.ok) {
+      if (!classesResponse.ok) {
         throw new Error("Failed to fetch classes");
       }
-      const data: Class[] = await response.json();
-      setAvailableClasses(data);
+
+      const studentsData: Student[] = await studentsResponse.json();
+      const classesData: Class[] = await classesResponse.json();
+      
+      setStudents(studentsData);
+      setAvailableClasses(classesData);
+
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to load classes for dropdown",
+        description: error.message || "Failed to load page data",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   }, [toast]);
 
   useEffect(() => {
-    fetchStudents();
-    fetchClasses();
-  }, [fetchStudents, fetchClasses]);
+    fetchPageData();
+  }, [fetchPageData]);
 
   const resetDialog = () => {
     setDialogMode('add');
@@ -101,7 +100,7 @@ export default function StudentsPage() {
       }
 
       resetDialog();
-      await Promise.all([fetchStudents(), fetchClasses()]);
+      await fetchPageData();
 
       toast({
         title: "Success",
@@ -132,7 +131,7 @@ export default function StudentsPage() {
       }
 
       resetDialog();
-      await Promise.all([fetchStudents(), fetchClasses()]);
+      await fetchPageData();
 
       toast({
         title: "Success",
@@ -158,7 +157,7 @@ export default function StudentsPage() {
         throw new Error(errorData.error || "Failed to delete student");
       }
 
-      await Promise.all([fetchStudents(), fetchClasses()]);
+      await fetchPageData();
       toast({
         title: "Success",
         description: "Student deleted successfully",
@@ -294,26 +293,44 @@ export default function StudentsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {students.map((student) => (
-                <TableRow key={student._id}>
-                  <TableCell className="font-medium">{student.name}</TableCell>
-                  <TableCell>{student.className}</TableCell>
-                  <TableCell>{student.email || "—"}</TableCell>
-                  <TableCell>
-                    <Badge variant={student.status === "Active" ? "default" : "secondary"}>{student.status}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => handleEditClick(student)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteStudent(student._id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
+            {loading ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-8 w-20" /></TableCell>
+                  </TableRow>
+                ))
+              ) : students.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center">
+                    No students found.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                students.map((student) => (
+                  <TableRow key={student._id}>
+                    <TableCell className="font-medium">{student.name}</TableCell>
+                    <TableCell>{student.className}</TableCell>
+                    <TableCell>{student.email || "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant={student.status === "Active" ? "default" : "secondary"}>{student.status}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="icon" onClick={() => handleEditClick(student)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteStudent(student._id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
